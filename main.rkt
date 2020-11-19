@@ -45,7 +45,9 @@
     var cs = [@(string-join
                 (map (lambda (c)
                        (unreal-js-fragment-content
-                        (at [0 0 0] (c))))
+                        (at [0 0 0] (if (procedure? c)
+                                       (c)
+                                       c))))
                      children)
                 ",")]
 
