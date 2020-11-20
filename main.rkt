@@ -39,6 +39,7 @@
   #:background "blue"
   #:foreground (parentify-rune-image)
 
+  ;TODO: This should probably return a thunk too.  Like spawner and trigger...
   @unreal-js{
    (function(){
     var p = @(if (procedure? parent)
