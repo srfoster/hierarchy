@@ -41,15 +41,21 @@
 
   @unreal-js{
    (function(){
-    var p = @(parent)
-    var cs = [@(string-join
-                (map (lambda (c)
-                       (unreal-js-fragment-content
-                        (at [0 0 0] (if (procedure? c)
-                                       (c)
-                                       c))))
-                     children)
-                ",")]
+    var p = @(if (procedure? parent)
+                 (parent)
+                 parent)
+  var cs = [@(string-join
+              (map (lambda (c)
+                     (unreal-js-fragment-content
+                      (at [0 0 0] (if (procedure? c)
+                                      (c)
+                                      c ;NOTE: If not a procedure, it will have the x/y/z of the top level (at []...)
+                                      ;The one wrapping it in this function won't have any effect
+                                      ;Should all runes return functions to unreal fragments?
+                                      ;Except maybe asset runes -- because the are usually used w/o parens anyway
+                                      ))))
+                   children)
+              ",")]
 
     cs.map((c)=>c.AttachActorToActor(p))
     
