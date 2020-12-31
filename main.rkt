@@ -2,6 +2,9 @@
 
 (require hierarchy/mod-info)
 
+(provide rotation
+         rotation-towards-player)
+
 #;
 (define-classic-rune (test-cube)
   #:background "blue"
@@ -18,6 +21,38 @@
   #:foreground (circle 20 'solid 'blue)
   (spawn-mod-blueprint pak-folder mod-name "TestParticles"))
 
+(define (rotation roll pitch yaw)
+  @unreal-js{
+ (function(){
+  {Roll: @(~a roll), Pitch: @(~a pitch), Yaw: @(~a yaw)}
+  })
+ })
+
+(define (rotation-towards-player)
+  @unreal-js{
+ (function(a){   
+  var p = GWorld.GetAllActorsOfClass(Root.ResolveClass('Avatar')).OutActors[0];
+  let a_location = a.GetActorLocation();
+  let p_location = p.GetActorLocation();
+  let rot = KismetMathLibrary.FindLookAtRotation(a_location, p_location);
+
+  return {Roll:0, Pitch:0, Yaw:rot.Yaw};
+  })
+ })
+
+(define-classic-rune (rotate rotation obj)
+  #:background "blue"
+  #:foreground (circle 20 'solid 'purple)
+  (thunk
+   @unreal-js{
+ (function(){
+  var a = @(if (procedure? obj)
+               (obj)
+               obj);
+  a.SetActorRotation(@rotation(a));
+  return a;
+  })()
+ }))
 
 (define (circle-stem)
   (above (circle 10 'solid 'cyan)
@@ -66,6 +101,7 @@
 
 (define-classic-rune-lang my-mod-lang #:eval-from main.rkt
   (parentify
+   rotate
    ;test-cube
    ;test-sphere
    ;test-particles
@@ -84,6 +120,6 @@
                                      test-particles test-particles test-particles test-particles)))))
   
   (once-upon-a-time
-   #:world (demo-world)
+   #:world (arena-world)
    #:aether (demo-aether
              #:lang (my-mod-lang #:with-paren-runes? #t))))
