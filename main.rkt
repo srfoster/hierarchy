@@ -3,28 +3,43 @@
 (require hierarchy/mod-info)
 
 (provide rotation
-         rotation-towards-player)
+         rotation-towards-player
+         scale
+         xyz-vector
+         xy-vector)
 
-#;
-(define-classic-rune (test-cube)
+(define (xyz-vector x y z)
+  @unreal-js{
+ (function(){
+  return {X: @(~a x), Y: @(~a y), Z: @(~a z)}
+  })
+})
+
+(define (xy-vector x y)
+  @unreal-js{
+ (function(){
+  return {X: @(~a x), Y: @(~a y)}
+  })
+})
+
+(define-classic-rune (scale vect obj)
   #:background "blue"
-  #:foreground (square 40 'solid 'blue)
-  (spawn-mod-blueprint pak-folder mod-name "TestCube"))
-#;
-(define-classic-rune (test-sphere)
-  #:background "blue"
-  #:foreground (circle 20 'solid 'blue)
-  (spawn-mod-blueprint pak-folder mod-name "TestSphere"))
-#;
-(define-classic-rune (test-particles)
-  #:background "blue"
-  #:foreground (circle 20 'solid 'blue)
-  (spawn-mod-blueprint pak-folder mod-name "TestParticles"))
+  #:foreground (circle 20 'solid 'cyan)
+  (thunk
+   @unreal-js{
+ (function(){
+  var a = @(if (procedure? obj)
+               (obj)
+               obj);
+  a.SetActorScale3D(@vect(a));
+  return a;
+  })()
+ }))
 
 (define (rotation roll pitch yaw)
   @unreal-js{
  (function(){
-  {Roll: @(~a roll), Pitch: @(~a pitch), Yaw: @(~a yaw)}
+  return {Roll: @(~a roll), Pitch: @(~a pitch), Yaw: @(~a yaw)}
   })
  })
 
@@ -40,7 +55,7 @@
   })
  })
 
-(define-classic-rune (rotate rotation obj)
+(define-classic-rune (turn rotation obj)
   #:background "blue"
   #:foreground (circle 20 'solid 'purple)
   (thunk
@@ -101,7 +116,7 @@
 
 (define-classic-rune-lang my-mod-lang #:eval-from main.rkt
   (parentify
-   rotate
+   turn
    ;test-cube
    ;test-sphere
    ;test-particles
@@ -112,13 +127,6 @@
   (codespells-workspace ;TODO: Change this to your local workspace if different
    (build-path (current-directory) ".." ".."))
 
-  (require codespells-server/unreal-client)
-  #;(thread (thunk*
-           (sleep 10)
-           (unreal-eval-js
-            (at [0 200 0] (parentify test-cube
-                                     test-particles test-particles test-particles test-particles)))))
-  
   (once-upon-a-time
    #:world (arena-world)
    #:aether (demo-aether
